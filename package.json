@@ -1,0 +1,29 @@
+{
+  "name": "league-leaderboard",
+  "version": "1.0.0",
+  "description": "A leaderboard to show your friend's progress for the current season",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jespernpedersen/otaku-leaderboard.git"
+  },
+  "keywords": [
+    "leaderboard",
+    "riot"
+  ],
+  "author": "Jesper Nissen-Pedersen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jespernpedersen/otaku-leaderboard/issues"
+  },
+  "homepage": "https://github.com/jespernpedersen/otaku-leaderboard#readme",
+  "dependencies": {
+    "discord.js": "^13.3.1",
+    "dotenv": "^8.2.0",
+    "node": "^17.0.1"
+  }
+}
