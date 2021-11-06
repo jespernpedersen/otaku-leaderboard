@@ -11,9 +11,6 @@ bot.login(DISCORD_TOKEN);
 // Stored Discord variables
 let channel = "906284346762215424"
 
-// RIOT API
-let summoner_id = "IkCV1u9bRPdimKnnbqIMAnYojjE4XOZtwO1zvzPxoGFvg3w"
-
 // Firebase APIs
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs } = require('firebase/firestore');
