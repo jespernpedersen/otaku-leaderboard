@@ -9,7 +9,8 @@ const RIOT_TOKEN = process.env.RIOT_TOKEN;
 bot.login(DISCORD_TOKEN);
 
 // Stored Discord variables
-let channel = "906284346762215424"
+let channel = "906284346762215424";
+let id = '';
 
 // Firebase APIs
 const { initializeApp } = require('firebase/app');
@@ -50,17 +51,21 @@ async function getSummonerID(db) {
 // Do API call to Riot for every Summoner 
 function ListRanks(summonerList) {
     let region = "euw1.api.riotgames.com"
-    let summonerObj = [];
+    var summonerObj = [];
 
     var listRanks = new Promise((resolve, reject) => {
         summonerList.forEach((summoner, index, array) => {
             let route = 'https://' + region + '/lol/league/v4/entries/by-summoner/' + summoner.summoner_id + '?api_key=' + RIOT_TOKEN;
-            fetch(route).then(res => res.json())
+            let itemArray = {};
+            fetch(route)
+            .then(res => 
+                res.json()
+            )
             .then(json => 
                 assembleSummonerData(summonerObj, json[0])
             )
-            .then(summonerObj => {
-                if(index === array.length -1) resolve(summonerObj)
+            .then((summonerObj) => {
+                if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
             })
         })
     });
@@ -137,7 +142,7 @@ function assembleSummonerData(summonerObj, summoner) {
         break;
     }
 
-    let itemArray = {
+    var itemArray = {
         name: summoner.summonerName,
         rank: summoner.rank,
         tier: summoner.tier,
@@ -168,9 +173,8 @@ function constructEmbed(summonerObj) {
 
     summonerObj.forEach((player) => {
         playerName += player.name + "\n";
-        playerRank += player.tier + " " + player.rank + "         LP: " + player.lp + "\n";
+        playerRank += player.tier + " " + player.rank + " LP: " + player.lp + " - Wins: " + player.wins + "\n";
     })
-
 
     const message = new MessageEmbed()
     .setAuthor('Otaku Leaderboard for Ranked League', 'https://icon-library.com/images/league-of-legends-icon-png/league-of-legends-icon-png-20.jpg')
@@ -181,7 +185,18 @@ function constructEmbed(summonerObj) {
 		{ name: '\u200B', value: playerRank, inline: true },
 	)
     
-    bot.channels.cache.get(channel).bulkDelete(100).then(
-        bot.channels.cache.get(channel).send({ embeds: [message] })
-    )
+    if(id === '') {
+        bot.channels.cache.get(channel).bulkDelete(100).then(
+            bot.channels.cache.get(channel).send({ embeds: [message] }).then(sent => {
+                id = sent.id;
+                setTimeout(function(id) { 
+                    getSummonerID(db); 
+                }, 3000);
+            })
+        )
+    }
+    // Edit already set message here
+    else {
+        console.log("Hi Jes");
+    }
 }
