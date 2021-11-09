@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
 const { Client, Intents, MessageEmbed } = require('discord.js');
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const bot = new Client({ intents: [Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 
 // API Credentials
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
@@ -11,7 +11,10 @@ bot.login(DISCORD_TOKEN);
 // Stored Discord variables
 let league_channel = "906284346762215424";
 let valorant_channel = "907393865475043378";
-let id = '';
+let league_rank = "907564961092472854";
+let valorant_rank = "907564796952604702";
+let league_id = '';
+let valorant_id = '';
 
 // Firebase APIs
 const { initializeApp } = require('firebase/app');
@@ -73,7 +76,7 @@ function ListLeagueRanks(summonerList) {
                 res.json()
             )
             .then(json => 
-                assembleSummonerData(summonerObj, json[0])
+                assembleSummonerData(summonerObj, json[0], summoner)
             )
             .then((summonerObj) => {
                 if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
@@ -83,7 +86,8 @@ function ListLeagueRanks(summonerList) {
 
     // When we finish constructing ranks
     listRanks.then((summonerObj) => {
-        constructLeagueEmbed(summonerObj)
+        setHighestRank(summonerObj, league_rank);
+        constructLeagueEmbed(summonerObj);
     })
 }
 
@@ -101,7 +105,7 @@ function ListValorantRanks(playerList) {
                 res.json()
             )
             .then(json => 
-                assembleValorantData(playerObj, json.data)
+                assembleValorantData(playerObj, json.data, player)
             )
             .then((playerObj) => {
                 if(Object.keys(playerObj).length === playerList.length) resolve(playerObj)
@@ -111,13 +115,14 @@ function ListValorantRanks(playerList) {
 
     // When we finish constructing ranks
     listRanks.then((playerObj) => {
-        constructValorantEmbed(playerObj)
+        setHighestRank(playerObj, valorant_rank);
+        constructValorantEmbed(playerObj);
     })
 }
 
 
 // Assemble Data Object for League of Legends
-function assembleValorantData(playerObj, player) {
+function assembleValorantData(playerObj, data, player) {
     /* Player Object has
     -- 
         name
@@ -133,11 +138,12 @@ function assembleValorantData(playerObj, player) {
     */
 
     var itemArray = {
-        name: player.name,
-        tag: player.tag,
-        placement: player.current_data.currenttier + (player.current_data.ranking_in_tier / 100),
-        rank: player.current_data.currenttierpatched,
-        lp: player.current_data.ranking_in_tier
+        name: data.name,
+        tag: data.tag,
+        placement: data.current_data.currenttier + (data.current_data.ranking_in_tier / 100),
+        rank: data.current_data.currenttierpatched,
+        lp: data.current_data.ranking_in_tier,
+        discord_id: player.discord_id
     }
 
     playerObj.push(itemArray);
@@ -147,7 +153,7 @@ function assembleValorantData(playerObj, player) {
 
 
 // Assemble Data Object for League of Legends
-function assembleSummonerData(summonerObj, summoner) {
+function assembleSummonerData(summonerObj, data, summoner) {
     /* Summoner Object has
     -- 
         leagueId
@@ -167,7 +173,7 @@ function assembleSummonerData(summonerObj, summoner) {
     */
     let rankpoints = 0
 
-    switch(summoner.tier) {
+    switch(data.tier) {
         case "IRON":
             rankpoints + 0;
         break;
@@ -197,7 +203,7 @@ function assembleSummonerData(summonerObj, summoner) {
         break;
     }
 
-    switch(summoner.rank) {
+    switch(data.rank) {
         case "IV": 
             rankpoints += 0;
         break;
@@ -213,13 +219,14 @@ function assembleSummonerData(summonerObj, summoner) {
     }
 
     var itemArray = {
-        name: summoner.summonerName,
-        rank: summoner.rank,
-        tier: summoner.tier,
-        lp: summoner.leaguePoints.toString(),
-        wins: summoner.wins,
-        hotstreak: summoner.hotstreak,
-        placement: rankpoints + summoner.leaguePoints
+        name: data.summonerName,
+        rank: data.rank,
+        tier: data.tier,
+        lp: data.leaguePoints.toString(),
+        wins: data.wins,
+        hotstreak: data.hotstreak,
+        placement: rankpoints + data.leaguePoints,
+        discord_id: summoner.discord_id
     }
 
     summonerObj.push(itemArray);
@@ -269,10 +276,10 @@ function constructLeagueEmbed(summonerObj) {
     .setTimestamp()
     .setFooter('Last updated')
     
-    if(id === '') {
+    if(league_id === '') {
         bot.channels.cache.get(league_channel).bulkDelete(100).then(
             bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
-                id = sent.id;
+                league_id = sent.id;
                 setTimeout(function() { 
                     getSummonerID(db); 
                 }, 3600000);
@@ -281,7 +288,7 @@ function constructLeagueEmbed(summonerObj) {
     }
     // Edit already set message here
     else {
-        messageEdit = bot.channels.cache.get(league_channel).messages.fetch(id)
+        messageEdit = bot.channels.cache.get(league_channel).messages.fetch(league_id)
         .then(message => message.edit({ embeds: [embed] }))
         .catch(console.error);
     }
@@ -330,10 +337,10 @@ function constructValorantEmbed(playerObj) {
     .setTimestamp()
     .setFooter('Last updated')
     
-    if(id === '') {
+    if(valorant_id === '') {
         bot.channels.cache.get(valorant_channel).bulkDelete(100).then(
             bot.channels.cache.get(valorant_channel).send({ embeds: [embed] }).then(sent => {
-                id = sent.id;
+                valorant_id = sent.id;
                 setTimeout(function() { 
                     getValorantPlayers(db); 
                 }, 3600000);
@@ -342,8 +349,28 @@ function constructValorantEmbed(playerObj) {
     }
     // Edit already set message here
     else {
-        messageEdit = bot.channels.cache.get(valorant_channel).messages.fetch(id)
+        messageEdit = bot.channels.cache.get(valorant_channel).messages.fetch(valorant_id)
         .then(message => message.edit({ embeds: [embed] }))
         .catch(console.error);
+    }
+}
+
+function setHighestRank(playerObj, rank) {
+    playerObj.sort(function(a, b) {
+        return b.placement - a.placement
+    });
+
+    let currentSet = bot.guilds.cache.get("906284174732820541").roles.cache.get(rank).members.map(
+        m => m.user.id
+    ).toString();
+
+    if(currentSet != playerObj[0].discord_id) {
+        bot.guilds.cache.get("906284174732820541").members.cache.map(member => {
+            member.roles.remove(rank);
+        })
+        bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id).roles.add(rank)
+    }
+    else {
+        return;
     }
 }
