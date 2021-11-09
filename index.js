@@ -336,23 +336,25 @@ function constructValorantEmbed(playerObj) {
 	)
     .setTimestamp()
     .setFooter('Last updated')
-    
-    if(valorant_id === '') {
-        bot.channels.cache.get(valorant_channel).bulkDelete(100).then(
+
+    bot.channels.cache.get(valorant_channel).messages.fetch().then(first_message => {
+        first_message.edit({ embeds: [embed] })
+        /*
+        if(first_message.size == 0) {            
             bot.channels.cache.get(valorant_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
                 setTimeout(function() { 
                     getValorantPlayers(db); 
-                }, 3600000);
+                }, 5000);
             })
-        )
-    }
-    // Edit already set message here
-    else {
-        messageEdit = bot.channels.cache.get(valorant_channel).messages.fetch(valorant_id)
-        .then(message => message.edit({ embeds: [embed] }))
-        .catch(console.error);
-    }
+        }
+        else {
+            let request = bot.channels.cache.get(valorant_channel).messages.cache.get(first_message.id);
+
+            console.log(request);
+        }
+        */
+    })
 }
 
 function setHighestRank(playerObj, rank) {
@@ -364,12 +366,14 @@ function setHighestRank(playerObj, rank) {
         m => m.user.id
     ).toString();
 
+    let promote = bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id);
+
     if(currentSet != playerObj[0].discord_id) {
         bot.guilds.cache.get("906284174732820541").members.cache.map(member => {
             member.roles.remove(rank);
         })
-        if(bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id)) {
-            bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id).roles.add(rank)
+        if(promote) {
+            promote.roles.add(rank)
         }
         else {
             console.log("Couldn't give highest rank: Player couldn't be found")
