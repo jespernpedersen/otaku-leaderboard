@@ -368,7 +368,12 @@ function setHighestRank(playerObj, rank) {
         bot.guilds.cache.get("906284174732820541").members.cache.map(member => {
             member.roles.remove(rank);
         })
-        bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id).roles.add(rank)
+        if(bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id)) {
+            bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id).roles.add(rank)
+        }
+        else {
+            console.log("Couldn't give highest rank: Player couldn't be found")
+        }
     }
     else {
         return;
