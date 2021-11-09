@@ -321,7 +321,7 @@ function constructValorantEmbed(playerObj) {
 
     const embed = new MessageEmbed()
     .setAuthor('VALORANT Leaderboard', 'https://i.imgur.com/qONRQmq.png')
-    .setColor("#0bc6e3")
+    .setColor("#FD4556")
     .setDescription("These are the current placements for participants of the Otaku Leaderboard. The Leaderboard is updated every hour or by manual restart.")
 	.addFields(
 		{ name: 'Name', value: playerName, inline: true },
