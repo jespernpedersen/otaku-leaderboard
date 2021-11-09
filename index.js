@@ -36,7 +36,7 @@ bot.on('ready', () => {
     bot.user.setActivity('ur rank kekw', {
         type: 'WATCHING'
     });
-    // getSummonerID(db);
+    getSummonerID(db);
     getValorantPlayers(db);
 });
 
@@ -229,31 +229,42 @@ function assembleSummonerData(summonerObj, summoner) {
 
 // Discord Embed for League of Legends
 function constructLeagueEmbed(summonerObj) {
+    let i = 0;
+
     summonerObj.sort(function(a, b) {
-        return a.placement - b.placement
+        return b.placement - a.placement
     });
 
-    let playerPlacement = "";
     let playerName = "";
     let playerRank = "";
 
-    for (var i = summonerObj.length - 1; i >= 0; i--) {
-        playerPlacement += (i + 1) + ". " + "\n";
-    }
-
     summonerObj.forEach((player) => {
-        playerName += player.name + "\n";
-        playerRank += player.tier + " " + player.rank + " LP: " + player.lp + " - Wins: " + player.wins + "\n";
-    })
+        i++;
+        if(i == 1) {
+            playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+        }
+        else if(i == 2) {
+            playerName += "\n :second_place: " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+        }
+        else if(i == 3) {
+            playerName += "\n :third_place: " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+        }
+        else {
+            playerName += "\n" + i.toString() + ". " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+        }
+    });
 
     const embed = new MessageEmbed()
     .setAuthor('Leaderboard for Otaku', 'https://i.imgur.com/PnuAAMj.png')
     .setColor("#0bc6e3")
-    .setDescription("These are the current placements for participants of the League Leaderboard")
+    .setDescription("These are the current placements for participants of the Otaku Leaderboard. The Leaderboard is updated every hour or by manual restart.")
 	.addFields(
-        { name: '\u200B', value: playerPlacement, inline: true},
-		{ name: '\u200B', value: playerName, inline: true },
-		{ name: '\u200B', value: playerRank, inline: true },
+		{ name: 'Name', value: playerName, inline: true },
+		{ name: 'Rank', value: playerRank, inline: true },
 	)
     .setTimestamp()
     .setFooter('Last updated')
@@ -281,16 +292,31 @@ function constructValorantEmbed(playerObj) {
     let i = 0;
 
     playerObj.sort(function(a, b) {
-        return a.placement + b.placement
+        return b.placement - a.placement
     });
-    
+
     let playerName = "";
     let playerRank = "";
     
     playerObj.forEach((player) => {
+
         i++;
-        playerName += i.toString() + ". " + player.name + "\n";
-        playerRank += "**" + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n";
+        if(i == 1) {
+            playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
+            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+        }
+        else if(i == 2) {
+            playerName += "\n :second_place: " + player.name + "\n";
+            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+        }
+        else if(i == 3) {
+            playerName += "\n :third_place: " + player.name + "\n";
+            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+        }
+        else {
+            playerName += "\n" + i.toString() + ". " + player.name + "\n";
+            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+        }
     });
 
     const embed = new MessageEmbed()
