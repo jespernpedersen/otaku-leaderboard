@@ -276,22 +276,25 @@ function constructLeagueEmbed(summonerObj) {
     .setTimestamp()
     .setFooter('Last updated')
     
-    if(league_id === '') {
-        bot.channels.cache.get(league_channel).bulkDelete(100).then(
+    bot.channels.cache.get(league_channel).messages.fetch().then(first_message => {
+
+        // If there is no message, post a new one
+        if(first_message.size == 0) {            
             bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
-                league_id = sent.id;
+                valorant_id = sent.id;
                 setTimeout(function() { 
-                    getSummonerID(db); 
-                }, 3600000);
+                    getValorantPlayers(db); 
+                }, 5000);
             })
-        )
-    }
-    // Edit already set message here
-    else {
-        messageEdit = bot.channels.cache.get(league_channel).messages.fetch(league_id)
-        .then(message => message.edit({ embeds: [embed] }))
-        .catch(console.error);
-    }
+        }
+        else {
+            let id = Array.from(first_message)[0][0];
+            
+            messageEdit = bot.channels.cache.get(league_channel).messages.fetch(id)
+            .then(message => message.edit({ embeds: [embed] }))
+            .catch(console.error);
+        }
+    })
 }
 
 // Discord Embed for League of Legends
@@ -338,8 +341,8 @@ function constructValorantEmbed(playerObj) {
     .setFooter('Last updated')
 
     bot.channels.cache.get(valorant_channel).messages.fetch().then(first_message => {
-        first_message.edit({ embeds: [embed] })
-        /*
+
+        // If there is no message, post a new one
         if(first_message.size == 0) {            
             bot.channels.cache.get(valorant_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
@@ -349,11 +352,12 @@ function constructValorantEmbed(playerObj) {
             })
         }
         else {
-            let request = bot.channels.cache.get(valorant_channel).messages.cache.get(first_message.id);
-
-            console.log(request);
+            let id = Array.from(first_message)[0][0];
+            
+            messageEdit = bot.channels.cache.get(valorant_channel).messages.fetch(id)
+            .then(message => message.edit({ embeds: [embed] }))
+            .catch(console.error);
         }
-        */
     })
 }
 
@@ -376,7 +380,7 @@ function setHighestRank(playerObj, rank) {
             promote.roles.add(rank)
         }
         else {
-            console.log("Couldn't give highest rank: Player couldn't be found")
+            console.log("Couldn't give highest rank: Player couldn't be found");
         }
     }
     else {
