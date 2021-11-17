@@ -12,8 +12,8 @@ bot.login(DISCORD_TOKEN);
 let league_channel = "906284346762215424";
 let league_rank = "907564961092472854";
 
-let valorant_channel = "907393865475043378";
-let valorant_rank = "907564796952604702";
+let valorant_channel = "910602949259059210";
+let valorant_rank = "910605330612908053";
 
 let tft_channel = "908722105380642826";
 let tft_rank = "";
