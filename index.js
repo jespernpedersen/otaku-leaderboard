@@ -10,9 +10,15 @@ bot.login(DISCORD_TOKEN);
 
 // Stored Discord variables
 let league_channel = "906284346762215424";
-let valorant_channel = "907393865475043378";
 let league_rank = "907564961092472854";
+
+let valorant_channel = "907393865475043378";
 let valorant_rank = "907564796952604702";
+
+let tft_channel = "908722105380642826";
+let tft_rank = "";
+
+
 let league_id = '';
 let valorant_id = '';
 
@@ -39,6 +45,7 @@ bot.on('ready', () => {
     bot.user.setActivity('ur rank kekw', {
         type: 'WATCHING'
     });
+    // getTFTID(db);
     getSummonerID(db);
     getValorantPlayers(db);
 });
@@ -51,6 +58,15 @@ async function getSummonerID(db) {
     const summonerSnapshot = await getDocs(summoners);
     const summonerList = summonerSnapshot.docs.map(doc => doc.data());
     ListLeagueRanks(summonerList);
+}
+
+// Fetch TFT Data from Firebase
+async function getTFTID(db) {
+    // League of Legends
+    const summoners = collection(db, 'tft');
+    const summonerSnapshot = await getDocs(summoners);
+    const summonerList = summonerSnapshot.docs.map(doc => doc.data());
+    ListTFTRanks(summonerList);
 }
 
 // Fetch Valorant Player Data from Firebase
@@ -88,6 +104,36 @@ function ListLeagueRanks(summonerList) {
     listRanks.then((summonerObj) => {
         setHighestRank(summonerObj, league_rank);
         constructLeagueEmbed(summonerObj);
+    })
+}
+
+// Do API call to Riot for every Summoner 
+function ListTFTRanks(summonerList) {
+    let region = "euw1.api.riotgames.com"
+    var summonerObj = [];
+
+    var listRanks = new Promise((resolve, reject) => {
+        summonerList.forEach((summoner, index, array) => {
+            let route = 'https://' + region + '/tft/summoner/v1/summoners/by-account/' + summoner.summoner_id + '?api_key=' + RIOT_TOKEN;
+            let itemArray = {};
+            fetch(route)
+            .then(res => 
+                res.json()
+            )
+            .then(json => 
+                console.log(json)
+                // assembleSummonerData(summonerObj, json[0], summoner)
+            )
+            .then((summonerObj) => {
+                // if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
+            })
+        })
+    });
+
+    // When we finish constructing ranks
+    listRanks.then((summonerObj) => {
+        // setHighestRank(summonerObj, league_rank);
+        // constructLeagueEmbed(summonerObj);
     })
 }
 
@@ -247,18 +293,22 @@ function constructLeagueEmbed(summonerObj) {
 
     summonerObj.forEach((player) => {
         i++;
+        // First Place
         if(i == 1) {
             playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
             playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
         }
+        // Second Place
         else if(i == 2) {
             playerName += "\n :second_place: " + player.name + "\n";
             playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
         }
+        // Third Place
         else if(i == 3) {
             playerName += "\n :third_place: " + player.name + "\n";
             playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
         }
+        // Default
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
             playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
