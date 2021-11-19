@@ -12,13 +12,15 @@ bot.login(DISCORD_TOKEN);
 let league_channel = "906284346762215424";
 let league_rank = "907564961092472854";
 
+// Valorant
 let valorant_channel = "910602949259059210";
 let valorant_rank = "910605330612908053";
 
+// TFT
 let tft_channel = "908722105380642826";
 let tft_rank = "";
 
-
+// Empty variables
 let league_id = '';
 let valorant_id = '';
 
@@ -46,7 +48,7 @@ bot.on('ready', () => {
         type: 'WATCHING'
     });
     // getTFTID(db);
-    getSummonerID(db);
+    // getSummonerID(db);
     getValorantPlayers(db);
 });
 
@@ -333,16 +335,22 @@ function constructLeagueEmbed(summonerObj) {
             bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
                 setTimeout(function() { 
-                    getValorantPlayers(db); 
-                }, 5000);
+                    getSummonerID(db); 
+                }, 3600000);
             })
         }
         else {
             let id = Array.from(first_message)[0][0];
+            let date = new Date();
+            console.log("Updating League Leaderboard - Time: " + date.getHours() + ":" + date.getMinutes())
             
             messageEdit = bot.channels.cache.get(league_channel).messages.fetch(id)
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
+
+            setTimeout(function() { 
+                getSummonerID(db); 
+            }, 3600000);
         }
     })
 }
@@ -398,32 +406,43 @@ function constructValorantEmbed(playerObj) {
                 valorant_id = sent.id;
                 setTimeout(function() { 
                     getValorantPlayers(db); 
-                }, 5000);
+                }, 3600000);
             })
         }
         else {
             let id = Array.from(first_message)[0][0];
+
+            
+            let date = new Date();
+            console.log("Updating Valorant Leaderboard - Time: " + date.getHours() + ":" + date.getMinutes())
             
             messageEdit = bot.channels.cache.get(valorant_channel).messages.fetch(id)
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
+
+            
+            setTimeout(function() { 
+                getValorantPlayers(db); 
+            }, 3600000);
         }
     })
 }
 
-function setHighestRank(playerObj, rank) {
+async function setHighestRank(playerObj, rank) {
     playerObj.sort(function(a, b) {
         return b.placement - a.placement
     });
 
-    let currentSet = bot.guilds.cache.get("906284174732820541").roles.cache.get(rank).members.map(
+    const guild = await bot.guilds.cache.get("547487272124153865");
+
+    let currentSet = guild.roles.cache.get(rank).members.map(
         m => m.user.id
     ).toString();
 
-    let promote = bot.guilds.cache.get("906284174732820541").members.cache.get(playerObj[0].discord_id);
+    let promote = guild.members.cache.get(playerObj[0].discord_id);
 
     if(currentSet != playerObj[0].discord_id) {
-        bot.guilds.cache.get("906284174732820541").members.cache.map(member => {
+        guild.members.cache.map(member => {
             member.roles.remove(rank);
         })
         if(promote) {
