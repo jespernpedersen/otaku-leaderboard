@@ -146,7 +146,7 @@ function ListValorantRanks(playerList) {
 
     var listRanks = new Promise((resolve, reject) => {
         playerList.forEach((player, index, array) => {
-            let route = 'https://' + region + '/valorant/v2/mmr/eu/' + player.playername + "/" + player.playertag;
+            let route = 'https://' + region + '/valorant/v1/mmr/eu/' + player.playername + "/" + player.playertag;
             let itemArray = {};
             fetch(route)
             .then(res => 
@@ -188,9 +188,9 @@ function assembleValorantData(playerObj, data, player) {
     var itemArray = {
         name: data.name,
         tag: data.tag,
-        placement: data.current_data.currenttier + (data.current_data.ranking_in_tier / 100),
-        rank: data.current_data.currenttierpatched,
-        lp: data.current_data.ranking_in_tier,
+        placement: data.currenttier + (data.ranking_in_tier / 100),
+        rank: data.currenttierpatched,
+        lp: data.ranking_in_tier,
         discord_id: player.discord_id
     }
 
@@ -335,7 +335,6 @@ function constructLeagueEmbed(summonerObj) {
             bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
 
-                
                 clearInterval();
                 setInterval(function() { 
                     getSummonerID(db); 
@@ -452,7 +451,7 @@ async function setHighestRank(playerObj, rank) {
             member.roles.remove(rank);
         })
         if(promote) {
-            promote.roles.add(rank)
+            promote.roles.add(rank);
         }
         else {
             console.log("Couldn't give highest rank: Player couldn't be found");
