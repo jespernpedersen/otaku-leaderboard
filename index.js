@@ -334,7 +334,10 @@ function constructLeagueEmbed(summonerObj) {
         if(first_message.size == 0) {            
             bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
-                setTimeout(function() { 
+
+                
+                clearInterval();
+                setInterval(function() { 
                     getSummonerID(db); 
                 }, 3600000);
             })
@@ -348,7 +351,9 @@ function constructLeagueEmbed(summonerObj) {
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
 
-            setTimeout(function() { 
+            
+            clearInterval();
+            setInterval(function() { 
                 getSummonerID(db); 
             }, 3600000);
         }
@@ -404,7 +409,8 @@ function constructValorantEmbed(playerObj) {
         if(first_message.size == 0) {            
             bot.channels.cache.get(valorant_channel).send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
-                setTimeout(function() { 
+                clearInterval();
+                setInterval(function() { 
                     getValorantPlayers(db); 
                 }, 3600000);
             })
@@ -420,8 +426,8 @@ function constructValorantEmbed(playerObj) {
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
 
-            
-            setTimeout(function() { 
+            clearInterval();
+            setInterval(function() { 
                 getValorantPlayers(db); 
             }, 3600000);
         }
