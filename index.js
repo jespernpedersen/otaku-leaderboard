@@ -6,6 +6,7 @@ const bot = new Client({ intents: [Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.
 // API Credentials
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const RIOT_TOKEN = process.env.RIOT_TOKEN;
+const RIOT_TFT_TOKEN = process.env.RIOT_TFT_TOKEN;
 bot.login(DISCORD_TOKEN);
 
 // Stored Discord variables
@@ -17,12 +18,13 @@ let valorant_channel = "910602949259059210";
 let valorant_rank = "910605330612908053";
 
 // TFT
-let tft_channel = "908722105380642826";
-let tft_rank = "";
+let tft_channel = "912879775259971585";
+let tft_rank = "912879987504332840";
 
 // Empty variables
 let league_id = '';
 let valorant_id = '';
+let tft_id = '';
 
 // Firebase APIs
 const { initializeApp } = require('firebase/app');
@@ -47,8 +49,8 @@ bot.on('ready', () => {
     bot.user.setActivity('ur rank kekw', {
         type: 'WATCHING'
     });
-    // getTFTID(db);
-    // getSummonerID(db);
+    getTFTID(db);
+    getSummonerID(db);
     getValorantPlayers(db);
 });
 
@@ -64,7 +66,7 @@ async function getSummonerID(db) {
 
 // Fetch TFT Data from Firebase
 async function getTFTID(db) {
-    // League of Legends
+    // TFT
     const summoners = collection(db, 'tft');
     const summonerSnapshot = await getDocs(summoners);
     const summonerList = summonerSnapshot.docs.map(doc => doc.data());
@@ -104,7 +106,7 @@ function ListLeagueRanks(summonerList) {
 
     // When we finish constructing ranks
     listRanks.then((summonerObj) => {
-        setHighestRank(summonerObj, league_rank);
+        // setHighestRank(summonerObj, league_rank);
         constructLeagueEmbed(summonerObj);
     })
 }
@@ -116,26 +118,25 @@ function ListTFTRanks(summonerList) {
 
     var listRanks = new Promise((resolve, reject) => {
         summonerList.forEach((summoner, index, array) => {
-            let route = 'https://' + region + '/tft/summoner/v1/summoners/by-account/' + summoner.summoner_id + '?api_key=' + RIOT_TOKEN;
+            let route = 'https://' + region + '/tft/league/v1/entries/by-summoner/' + summoner.summoner_id + '?api_key=' + RIOT_TFT_TOKEN;
             let itemArray = {};
             fetch(route)
             .then(res => 
                 res.json()
             )
             .then(json => 
-                console.log(json)
-                // assembleSummonerData(summonerObj, json[0], summoner)
+                assembleSummonerData(summonerObj, json[0], summoner)
             )
             .then((summonerObj) => {
-                // if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
+                if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
             })
         })
     });
 
     // When we finish constructing ranks
     listRanks.then((summonerObj) => {
-        // setHighestRank(summonerObj, league_rank);
-        // constructLeagueEmbed(summonerObj);
+        setHighestRank(summonerObj, tft_rank);
+        constructTFTEmbed(summonerObj);
     })
 }
 
@@ -146,7 +147,7 @@ function ListValorantRanks(playerList) {
 
     var listRanks = new Promise((resolve, reject) => {
         playerList.forEach((player, index, array) => {
-            let route = 'https://' + region + '/valorant/v1/mmr/eu/' + player.playername + "/" + player.playertag;
+            let route = 'https://' + region + '/valorant/v2/mmr/eu/' + player.playername + "/" + player.playertag;
             let itemArray = {};
             fetch(route)
             .then(res => 
@@ -184,14 +185,67 @@ function assembleValorantData(playerObj, data, player) {
             games_needed_for_rating
         }
     */
+   let badge = '';
+
+    switch(data.current_data.currenttierpatched) {
+        case 'Iron 1':
+            badge = '<:RANK_Iron1:912932890151620620>';
+        break;
+        case 'Iron 2':
+            badge = '<:RANK_Iron2:912932906119356456>';
+        break;
+        case 'Iron 3':
+            badge = '<:RANK_Iron3:912932919893454878>';
+        break;
+        case 'Bronze 1':
+            badge = '<:RANK_Bronze1:912932942202937354>';
+        break;
+        case 'Bronze 2':
+            badge = '<:RANK_Bronze2:912932957315026954>';
+        break;
+        case 'Bronze 3':
+            badge = '<:RANK_Bronze3:912932972276109373>';
+        break;
+        case 'Silver 1':
+            badge = '<:RANK_Silver1:912932990248693760>';
+        break;
+        case 'Silver 2':
+            badge = '<:RANK_Silver2:912933004291244063>';
+        break;
+        case 'Silver 3':
+            badge = '<:RANK_Silver3:912933018237280277>';
+        break;
+        case 'Gold 1':
+            badge = '<:RANK_Gold1:912933035756908584>';
+        break;
+        case 'Gold 2':
+            badge = '<:RANK_Gold2:912933052760596502>';
+        break;
+        case 'Gold 3':
+            badge = '<:RANK_Gold3:912933067834945638>';
+        break;
+        case 'Platinum 1':
+            badge = '<:RANK_Plat1:912933083873935360>';
+        break;
+        case 'Platinum 2':
+            badge = '<:RANK_Plat2:912933097924853810>';
+        break;
+        case 'Platinum 3':
+            badge = '<:RANK_Plat3:912933114769199125>';
+        break;
+        default: 
+            badge = '';
+        break;
+    }
 
     var itemArray = {
         name: data.name,
         tag: data.tag,
-        placement: data.currenttier + (data.ranking_in_tier / 100),
-        rank: data.currenttierpatched,
-        lp: data.ranking_in_tier,
-        discord_id: player.discord_id
+        placement: data.current_data.currenttier + (data.current_data.ranking_in_tier / 100),
+        rank: data.current_data.currenttierpatched,
+        lp: data.current_data.ranking_in_tier,
+        discord_id: player.discord_id,
+        icon: badge
     }
 
     playerObj.push(itemArray);
@@ -313,7 +367,7 @@ function constructLeagueEmbed(summonerObj) {
         // Default
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+            playerRank += "<:RANK_Silver2:912932990248693760>";
         }
     });
 
@@ -326,13 +380,13 @@ function constructLeagueEmbed(summonerObj) {
 		{ name: 'Rank', value: playerRank, inline: true },
 	)
     .setTimestamp()
-    .setFooter('Last updated')
+    .setFooter('Developed by Jes - Last updated')
     
-    bot.channels.cache.get(league_channel).messages.fetch().then(first_message => {
+    bot.channels.cache.get('906284346762215424').messages.fetch().then(first_message => {
 
         // If there is no message, post a new one
         if(first_message.size == 0) {            
-            bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
+            bot.channels.cache.get('906284346762215424').send({ embeds: [embed] }).then(sent => {
                 valorant_id = sent.id;
 
                 clearInterval();
@@ -346,7 +400,86 @@ function constructLeagueEmbed(summonerObj) {
             let date = new Date();
             console.log("Updating League Leaderboard - Time: " + date.getHours() + ":" + date.getMinutes())
             
-            messageEdit = bot.channels.cache.get(league_channel).messages.fetch(id)
+            messageEdit = bot.channels.cache.get('906284346762215424').messages.fetch(id)
+            .then(message => message.edit({ embeds: [embed] }))
+            .catch(console.error);
+
+            
+            clearInterval();
+            setInterval(function() { 
+                getSummonerID(db); 
+            }, 3600000);
+        }
+    })
+}
+
+
+
+// Discord Embed for League of Legends
+function constructTFTEmbed(summonerObj) {
+    let i = 0;
+
+    summonerObj.sort(function(a, b) {
+        return b.placement - a.placement
+    });
+
+    let playerName = "";
+    let playerRank = "";
+
+    summonerObj.forEach((player) => {
+        i++;
+        // First Place
+        if(i == 1) {
+            playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+        }
+        // Second Place
+        else if(i == 2) {
+            playerName += "\n :second_place: " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+        }
+        // Third Place
+        else if(i == 3) {
+            playerName += "\n :third_place: " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+        }
+        // Default
+        else {
+            playerName += "\n" + i.toString() + ". " + player.name + "\n";
+            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+        }
+    });
+
+    const embed = new MessageEmbed()
+    .setAuthor('TFT Leaderboard for Otaku', 'https://i.imgur.com/opRzRkX.png')
+    .setColor("#f5af3e")
+    .setDescription("These are the current placements for participants of the Otaku Leaderboard. The Leaderboard is updated every hour or by manual restart.")
+	.addFields(
+		{ name: 'Name', value: playerName, inline: true },
+		{ name: 'Rank', value: playerRank, inline: true },
+	)
+    .setTimestamp()
+    .setFooter('Developed by Jes - Last updated')
+    
+    bot.channels.cache.get(tft_channel).messages.fetch().then(first_message => {
+
+        // If there is no message, post a new one
+        if(first_message.size == 0) {            
+            bot.channels.cache.get(tft_channel).send({ embeds: [embed] }).then(sent => {
+                tft_id = sent.id;
+
+                clearInterval();
+                setInterval(function() { 
+                    getTFTID(db); 
+                }, 3600000);
+            })
+        }
+        else {
+            let id = Array.from(first_message)[0][0];
+            let date = new Date();
+            console.log("Updating TFT Leaderboard - Time: " + date.getHours() + ":" + date.getMinutes())
+            
+            messageEdit = bot.channels.cache.get(tft_channel).messages.fetch(id)
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
 
@@ -371,23 +504,22 @@ function constructValorantEmbed(playerObj) {
     let playerRank = "";
     
     playerObj.forEach((player) => {
-
         i++;
         if(i == 1) {
             playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
-            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+            playerRank += player.icon + "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
         }
         else if(i == 2) {
             playerName += "\n :second_place: " + player.name + "\n";
-            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+            playerRank += player.icon + "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
         }
         else if(i == 3) {
             playerName += "\n :third_place: " + player.name + "\n";
-            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+            playerRank += player.icon + "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
         }
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
-            playerRank += "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
+            playerRank += player.icon + "**"  + player.rank + "** - Rank Progress: " + player.lp + "%" + "\n \n";
         }
     });
 
@@ -400,7 +532,7 @@ function constructValorantEmbed(playerObj) {
 		{ name: 'Rank', value: playerRank, inline: true },
 	)
     .setTimestamp()
-    .setFooter('Last updated')
+    .setFooter('Developed by Jes - Last updated')
 
     bot.channels.cache.get(valorant_channel).messages.fetch().then(first_message => {
 
@@ -451,7 +583,7 @@ async function setHighestRank(playerObj, rank) {
             member.roles.remove(rank);
         })
         if(promote) {
-            promote.roles.add(rank);
+            promote.roles.add(rank)
         }
         else {
             console.log("Couldn't give highest rank: Player couldn't be found");
