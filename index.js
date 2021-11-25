@@ -580,14 +580,10 @@ async function setHighestRank(playerObj, rank) {
 
     if(currentSet != playerObj[0].discord_id) {
         guild.members.cache.map(member => {
-            member.roles.remove(rank);
+            member.roles.remove(rank).then(
+                promote.roles.add(rank)               
+            );
         })
-        if(promote) {
-            promote.roles.add(rank)
-        }
-        else {
-            console.log("Couldn't give highest rank: Player couldn't be found");
-        }
     }
     else {
         return;
