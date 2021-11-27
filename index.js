@@ -50,7 +50,7 @@ bot.on('ready', () => {
         type: 'WATCHING'
     });
     getTFTID(db);
-    getSummonerID(db);
+    // getSummonerID(db);
     getValorantPlayers(db);
 });
 
@@ -114,18 +114,17 @@ function ListLeagueRanks(summonerList) {
 // Do API call to Riot for every Summoner 
 function ListTFTRanks(summonerList) {
     let region = "euw1.api.riotgames.com"
-    var summonerObj = [];
+    let summonerObj = [];
 
     var listRanks = new Promise((resolve, reject) => {
         summonerList.forEach((summoner, index, array) => {
             let route = 'https://' + region + '/tft/league/v1/entries/by-summoner/' + summoner.summoner_id + '?api_key=' + RIOT_TFT_TOKEN;
-            let itemArray = {};
             fetch(route)
             .then(res => 
                 res.json()
             )
             .then(json => 
-                assembleSummonerData(summonerObj, json[0], summoner)
+                assembleSummonerData(summonerObj, json, summoner)
             )
             .then((summonerObj) => {
                 if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
@@ -256,82 +255,87 @@ function assembleValorantData(playerObj, data, player) {
 
 // Assemble Data Object for League of Legends
 function assembleSummonerData(summonerObj, data, summoner) {
-    /* Summoner Object has
-    -- 
-        leagueId
-        queueType
-        tier
-        rank
-        summonerId
-        summonerName
-        leaguePoints
-        wins
-        losses
-        veteran
-        inactive
-        freshBlood
-        hotstreak
-    --
-    */
-    let rankpoints = 0
+    data.forEach(item => {
+        if(item.queueType == 'RANKED_TFT') {
+            /* Summoner Object has
+            -- 
+                leagueId
+                queueType
+                tier
+                rank
+                summonerId
+                summonerName
+                leaguePoints
+                wins
+                losses
+                veteran
+                inactive
+                freshBlood
+                hotstreak
+            --
+            */
+            let rankpoints = 0
 
-    switch(data.tier) {
-        case "IRON":
-            rankpoints + 0;
-        break;
-        case "BRONZE":
-            rankpoints += 1000;
-        break;
-        case "SILVER": 
-            rankpoints += 2000;
-        break;
-        case "GOLD": 
-            rankpoints += 3000;
-        break;
-        case "PLATINUM":
-            rankpoints += 4000;
-        break;
-        case "DIAMOND":
-            rankpoints += 5000;
-        break;
-        case "MASTER":
-            rankpoints += 6000;
-        break;
-        case "GRANDMASTER": 
-            rankpoints += 7000;
-        break;
-        case "CHALLENGER":
-            rankpoints += 9000;
-        break;
-    }
+            switch(item.tier) {
+                case "IRON":
+                    rankpoints + 0;
+                break;
+                case "BRONZE":
+                    rankpoints += 1000;
+                break;
+                case "SILVER": 
+                    rankpoints += 2000;
+                break;
+                case "GOLD": 
+                    rankpoints += 3000;
+                break;
+                case "PLATINUM":
+                    rankpoints += 4000;
+                break;
+                case "DIAMOND":
+                    rankpoints += 5000;
+                break;
+                case "MASTER":
+                    rankpoints += 6000;
+                break;
+                case "GRANDMASTER": 
+                    rankpoints += 7000;
+                break;
+                case "CHALLENGER":
+                    rankpoints += 9000;
+                break;
+            }
 
-    switch(data.rank) {
-        case "IV": 
-            rankpoints += 0;
-        break;
-        case "III":
-            rankpoints += 100;
-        break;
-        case "II": 
-            rankpoints += 200;
-        break;
-        case "I": 
-            rankpoints += 300;
-        break;
-    }
+            switch(item.rank) {
+                case "IV": 
+                    rankpoints += 0;
+                break;
+                case "III":
+                    rankpoints += 100;
+                break;
+                case "II": 
+                    rankpoints += 200;
+                break;
+                case "I": 
+                    rankpoints += 300;
+                break;
+            }
 
-    var itemArray = {
-        name: data.summonerName,
-        rank: data.rank,
-        tier: data.tier,
-        lp: data.leaguePoints.toString(),
-        wins: data.wins,
-        hotstreak: data.hotstreak,
-        placement: rankpoints + data.leaguePoints,
-        discord_id: summoner.discord_id
-    }
+            var itemArray = {
+                name: item.summonerName,
+                rank: item.rank,
+                tier: item.tier,
+                lp: item.leaguePoints.toString(),
+                wins: item.wins,
+                placement: rankpoints + item.leaguePoints,
+                discord_id: summoner.discord_id
+            }
 
-    summonerObj.push(itemArray);
+            summonerObj.push(itemArray);
+        }
+        else {
+        }
+    })
     return summonerObj;
 }
 
