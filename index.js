@@ -321,6 +321,89 @@ function assembleSummonerData(summonerObj, data, summoner) {
                 break;
             }
 
+            let combined_rank = item.tier + " " + item.rank;
+
+            switch(combined_rank) {
+                case 'IRON I':
+                    badge = '<:RANK_LEAGUE_IRON1:915721302206201867>';
+                break;
+                case 'IRON II':
+                    badge = '<:RANK_LEAGUE_IRON2:915721315732840458>';
+                break;
+                case 'IRON III':
+                    badge = '<:RANK_LEAGUE_IRON3:915721330521939978>';
+                break;
+                case 'IRON IV':
+                    badge = '<:RANK_LEAGUE_IRON4:915721343037747230>';
+                break;
+                case 'BRONZE I':
+                    badge = '<:RANK_LEAGUE_BRONZE1:915721084874137600>';
+                break;
+                case 'BRONZE II':
+                    badge = '<:RANK_LEAGUE_BRONZE2:915721099927502889>';
+                break;
+                case 'BRONZE III':
+                    badge = '<:RANK_LEAGUE_BRONZE3:915721145280520252>';
+                break;
+                case 'BRONZE IV':
+                    badge = '<:RANK_LEAGUE_BRONZE4:915721161130770453>';
+                break;
+                case 'SILVER I':
+                    badge = '<:RANK_LEAGUE_SILVER1:915721416253513758>';
+                break;
+                case 'SILVER II':
+                    badge = '<:RANK_LEAGUE_SILVER2:915721429503320095>';
+                break;
+                case 'SILVER III':
+                    badge = '<:RANK_LEAGUE_SILVER3:915721441352228924>';
+                break;
+                case 'SILVER IV':
+                    badge = '<:RANK_LEAGUE_SILVER4:915721455499632660>';
+                break;
+                case 'GOLD I':
+                    badge = '<:RANK_LEAGUE_GOLD1:915721242248618054>';
+                break;
+                case 'GOLD II':
+                    badge = '<:RANK_LEAGUE_GOLD2:915721255703953499>';
+                break;
+                case 'GOLD III':
+                    badge = '<:RANK_LEAGUE_GOLD3:915721270702800916>';
+                break;
+                case 'GOLD IV':
+                    badge = '<:RANK_LEAGUE_GOLD4:915721285538050068>';
+                break;
+                case 'PLATINUM I':
+                    badge = '<:RANK_LEAGUE_PLAT1:915721356644085830>';
+                break;
+                case 'PLATINUM II':
+                    badge = '<:RANK_LEAGUE_PLAT2:915721369856118785>';
+                break;
+                case 'PLATINUM III':
+                    badge = '<:RANK_LEAGUE_PLAT3:915721386658529360>';
+                break;
+                case 'PLATINUM IV':
+                    badge = '<:RANK_LEAGUE_PLAT4:915721402273914891>';
+                break;
+                case 'DIAMOND I':
+                    badge = '<:RANK_LEAGUE_DIAMOND1:915721180181307393>';
+                break;
+                case 'DIAMOND II':
+                    badge = '<:RANK_LEAGUE_DIAMOND2:915721195700244570>';
+                break;
+                case 'DIAMOND III':
+                    badge = '<:RANK_LEAGUE_DIAMOND3:915721211810549770>';
+                break;
+                case 'DIAMOND IV':
+                    badge = '<:RANK_LEAGUE_DIAMOND4:915721227153342515>';
+                break;
+                case 'MASTER':
+                    badge = '<:RANK_LEAGUE_MASTER:915721473547698196>';
+                break;
+                default: 
+                    badge = '';
+                break;
+            }
+
             var itemArray = {
                 name: item.summonerName,
                 rank: item.rank,
@@ -328,7 +411,8 @@ function assembleSummonerData(summonerObj, data, summoner) {
                 lp: item.leaguePoints.toString(),
                 wins: item.wins,
                 placement: rankpoints + item.leaguePoints,
-                discord_id: summoner.discord_id
+                discord_id: summoner.discord_id,
+                icon: badge
             }
 
             summonerObj.push(itemArray);
@@ -435,22 +519,22 @@ function constructTFTEmbed(summonerObj) {
         // First Place
         if(i == 1) {
             playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Second Place
         else if(i == 2) {
             playerName += "\n :second_place: " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Third Place
         else if(i == 3) {
             playerName += "\n :third_place: " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Default
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
     });
 
