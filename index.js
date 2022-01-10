@@ -447,22 +447,22 @@ function constructLeagueEmbed(summonerObj) {
         // First Place
         if(i == 1) {
             playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
-            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + "\n \n";
         }
         // Second Place
         else if(i == 2) {
             playerName += "\n :second_place: " + player.name + "\n";
-            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + "\n \n";
         }
         // Third Place
         else if(i == 3) {
             playerName += "\n :third_place: " + player.name + "\n";
-            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + "\n \n";
         }
         // Default
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
-            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + "\n \n";
         }
     });
 
