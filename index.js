@@ -10,8 +10,8 @@ const RIOT_TFT_TOKEN = process.env.RIOT_TFT_TOKEN;
 bot.login(DISCORD_TOKEN);
 
 // Stored Discord variables
-let league_channel = "906284346762215424";
-let league_rank = "907564961092472854";
+let league_channel = "912883650905923614";
+let league_rank = "929402150436610068";
 
 // Valorant
 let valorant_channel = "910602949259059210";
@@ -26,9 +26,17 @@ let league_id = '';
 let valorant_id = '';
 let tft_id = '';
 
+// Debug
+/*
+let timer = 5000;
+*/
+
+let timer = 3600000;
+
+
 // Firebase APIs
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, getDocs } = require('firebase/firestore');
+const { getFirestore, collection, getDocs, doc } = require('firebase/firestore');
 
 const firebaseConfig = {
     apiKey: process.env.apiKey,
@@ -50,7 +58,7 @@ bot.on('ready', () => {
         type: 'WATCHING'
     });
     getTFTID(db);
-    // getSummonerID(db);
+    getSummonerID(db);
     getValorantPlayers(db);
 });
 
@@ -85,18 +93,17 @@ async function getValorantPlayers(db) {
 // Do API call to Riot for every Summoner 
 function ListLeagueRanks(summonerList) {
     let region = "euw1.api.riotgames.com"
-    var summonerObj = [];
+    let summonerObj = [];
 
     var listRanks = new Promise((resolve, reject) => {
         summonerList.forEach((summoner, index, array) => {
             let route = 'https://' + region + '/lol/league/v4/entries/by-summoner/' + summoner.summoner_id + '?api_key=' + RIOT_TOKEN;
-            let itemArray = {};
             fetch(route)
             .then(res => 
                 res.json()
             )
             .then(json => 
-                assembleSummonerData(summonerObj, json[0], summoner)
+                assembleSummonerData(summonerObj, json, summoner)
             )
             .then((summonerObj) => {
                 if(Object.keys(summonerObj).length === summonerList.length) resolve(summonerObj)
@@ -106,7 +113,7 @@ function ListLeagueRanks(summonerList) {
 
     // When we finish constructing ranks
     listRanks.then((summonerObj) => {
-        // setHighestRank(summonerObj, league_rank);
+        setHighestRank(summonerObj, league_rank);
         constructLeagueEmbed(summonerObj);
     })
 }
@@ -256,7 +263,7 @@ function assembleValorantData(playerObj, data, player) {
 // Assemble Data Object for League of Legends
 function assembleSummonerData(summonerObj, data, summoner) {
     data.forEach(item => {
-        if(item.queueType == 'RANKED_TFT') {
+        if(item.queueType == 'RANKED_TFT' || item.queueType == 'RANKED_SOLO_5x5') {
             /* Summoner Object has
             -- 
                 leagueId
@@ -440,22 +447,22 @@ function constructLeagueEmbed(summonerObj) {
         // First Place
         if(i == 1) {
             playerName += "\n :crown: " + "__" + player.name + "__" + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Second Place
         else if(i == 2) {
             playerName += "\n :second_place: " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Third Place
         else if(i == 3) {
             playerName += "\n :third_place: " + player.name + "\n";
-            playerRank += "**" + player.tier + " " + player.rank + "** - LP: " + player.lp + "" + "\n \n";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
         // Default
         else {
             playerName += "\n" + i.toString() + ". " + player.name + "\n";
-            playerRank += "<:RANK_Silver2:912932990248693760>";
+            playerRank += player.icon + " **" + player.tier + " " + player.rank + "** • LP: " + player.lp + " • 1st Places: " + player.wins + "\n \n";
         }
     });
 
@@ -469,18 +476,18 @@ function constructLeagueEmbed(summonerObj) {
 	)
     .setTimestamp()
     .setFooter('Developed by Jes - Last updated')
-    
-    bot.channels.cache.get('906284346762215424').messages.fetch().then(first_message => {
+
+    bot.channels.cache.get(league_channel).messages.fetch().then(first_message => {
 
         // If there is no message, post a new one
         if(first_message.size == 0) {            
-            bot.channels.cache.get('906284346762215424').send({ embeds: [embed] }).then(sent => {
-                valorant_id = sent.id;
+            bot.channels.cache.get(league_channel).send({ embeds: [embed] }).then(sent => {
+                league_id = sent.id;
 
                 clearInterval();
                 setInterval(function() { 
-                    getSummonerID(db); 
-                }, 3600000);
+                    getTFTID(db); 
+                }, timer);
             })
         }
         else {
@@ -488,7 +495,7 @@ function constructLeagueEmbed(summonerObj) {
             let date = new Date();
             console.log("Updating League Leaderboard - Time: " + date.getHours() + ":" + date.getMinutes())
             
-            messageEdit = bot.channels.cache.get('906284346762215424').messages.fetch(id)
+            messageEdit = bot.channels.cache.get(league_channel).messages.fetch(id)
             .then(message => message.edit({ embeds: [embed] }))
             .catch(console.error);
 
@@ -496,7 +503,7 @@ function constructLeagueEmbed(summonerObj) {
             clearInterval();
             setInterval(function() { 
                 getSummonerID(db); 
-            }, 3600000);
+            }, timer);
         }
     })
 }
@@ -559,7 +566,7 @@ function constructTFTEmbed(summonerObj) {
                 clearInterval();
                 setInterval(function() { 
                     getTFTID(db); 
-                }, 3600000);
+                }, timer);
             })
         }
         else {
@@ -574,8 +581,8 @@ function constructTFTEmbed(summonerObj) {
             
             clearInterval();
             setInterval(function() { 
-                getSummonerID(db); 
-            }, 3600000);
+                getTFTID(db); 
+            }, timer);
         }
     })
 }
@@ -631,7 +638,7 @@ function constructValorantEmbed(playerObj) {
                 clearInterval();
                 setInterval(function() { 
                     getValorantPlayers(db); 
-                }, 3600000);
+                }, timer);
             })
         }
         else {
@@ -648,7 +655,7 @@ function constructValorantEmbed(playerObj) {
             clearInterval();
             setInterval(function() { 
                 getValorantPlayers(db); 
-            }, 3600000);
+            }, timer);
         }
     })
 }
